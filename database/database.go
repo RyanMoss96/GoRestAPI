@@ -6,10 +6,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-type RedisClient struct {
-	client *redis.Client
-}
-
 var defaultClient *redis.Client
 
 func NewRedisClient(client *redis.Client) *redis.Client {
