@@ -2,7 +2,6 @@ package app
 
 import (
 	"RyanMoss96/GoRestAPI/database"
-	"RyanMoss96/GoRestAPI/handler"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,27 +15,34 @@ type App struct {
 }
 
 func (app *App) InitializeAndStart() {
-	app.router = mux.NewRouter()
-	app.setupRoutes()
+	app.router = setupRouterAndRoutes()
+	redisClient := initializeRedisClient()
 
-	database.NewRedisClient(redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	}))
+	pong, err := redisClient.Ping().Result()
 
-	client := database.GetRedisClient()
+	if err != nil {
+		log.Fatal("Unable to create Redis Client. Exiting")
+	}
 
-	pong, err := client.Ping().Result()
-	fmt.Println(pong, err)
-
-	handler.Test()
+	log.Println(pong + " - Redis Client Successfully Created")
 
 	log.Fatal(http.ListenAndServe(":8080", app.router))
 }
 
-func (app *App) setupRoutes() {
-	app.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+func initializeRedisClient() *redis.Client {
+	return database.NewRedisClient(redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	}))
+}
+
+func setupRouterAndRoutes() *mux.Router {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("router")
 	})
+
+	return router
 }
